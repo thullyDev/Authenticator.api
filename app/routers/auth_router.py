@@ -1,33 +1,21 @@
-# from fastapi import APIRouter, Depends
-# from fastapi.responses import JSONResponse
-# from app.handlers.response_handler import ResponseHandler
-# from app.resources.errors import CRASH
-
-# router: APIRouter = APIRouter(prefix="/auth")
-# response: ResponseHandler = ResponseHandler()
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
+from app.handlers.response_handler import ResponseHandler
 
 
-# Custom middleware function
-# async def custom_middleware(request, call_next):
-    # Check if a specific condition is met
-    # if some_condition:
-        # Return a custom response
-        # return response.successful_response({"message": "Custom response"})
+router: APIRouter = APIRouter(prefix="/auth")
+response: ResponseHandler = ResponseHandler()
 
-    # If the condition is not met, continue with the request
-    # response = await call_next(request)
-    # return response
-
-# Register the middleware with the FastAPI app
-# router.middleware("http")(custom_middleware)
-
-# def verify_request():
-#      token = None
-     
-#      if not token:
-#           return {"status_code": 401, "detail": "Invalid token"}
+@router.get("/signup")
+def signup() -> JSONResponse:
+     return response.successful_response(data={ "message": "this is signup" })
 
 
-# @router.get("/signup")
-# def signup(token: str = Depends(verify_request)) -> JSONResponse:
-#      return response.successful_response()
+def validator(*, request: Request, callnext):
+     url_path = request.url.path
+     temp = url_path.split("/")
+
+     if "signup" in temp:
+          return callnext(request) 
+
+     return response.successful_response(data={ "message": "this is validator" })
