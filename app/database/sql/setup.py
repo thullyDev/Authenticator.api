@@ -11,3 +11,5 @@ engine = create_engine(SQL_URL)
 
 # if __name__ == "__main__":
 #     create_db_and_tables()
+
+# postgresql://username:password@localhost/database_name
