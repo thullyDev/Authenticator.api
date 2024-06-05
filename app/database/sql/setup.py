@@ -1,15 +1,20 @@
-from typing import Any
-from sqlmodel import create_engine
+from typing import Any, Optional
 from decouple import config
+from datetime import datetime
+from sqlmodel import Field, Session, SQLModel, create_engine, select
 
-SQL_URL: Any = config("SQL_URL")
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str
+    email: str
+    password: str
+    deleted: bool = False
+    created_at: datetime = Field(default=datetime.now())
+    profile_image_url: Optional[str] = None
+    token: Optional[str] = None
+    # add or remove any attributes you want and dont want
+
+SQL_URL: Any = config("SQL_URL") 
 engine = create_engine(SQL_URL)
 
-
-# def create_db_and_tables():
-#     SQLModel.metadata.create_all(engine)
-
-# if __name__ == "__main__":
-#     create_db_and_tables()
-
-# postgresql://username:password@localhost/database_name
+SQLModel.metadata.create_all(engine)
