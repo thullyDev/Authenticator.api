@@ -8,15 +8,15 @@ response: ResponseHandler = ResponseHandler()
 
 @router.post("/signup/")
 def signup(username: str, email: str, password: str, confirm: str) -> JSONResponse:
-     data = database.get_user(email=email)
 
      if len(password) < 10:
           return response.bad_request_response(data={ "message": "password should have length greater equal to 10" })
 
      if password != confirm:
           return response.bad_request_response(data={ "message": "password and confirm do not match" })
+     data = database.get_user(email=email)
 
-     return response.successful_response(data={ "message": "successfully signed up" })
+     return response.successful_response(data={ "message": "successfully signed up", "email": data.email })
 
 
 def validator(*, request: Request, callnext):

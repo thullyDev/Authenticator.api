@@ -1,4 +1,8 @@
-from decouple import config
+from environs import Env
 
-PORT = config("PORT")
-HOST = config("HOST")
+config = Env()
+config.read_env()
+
+PORT: str = config("PORT")
+HOST: str = config("HOST")
+REDIS_URL: str = config("REDIS_URL")
