@@ -5,14 +5,14 @@ from app.handlers.response_handler import ResponseHandler
 from app.database import database
 from app.database.cache import cache 
 import uuid
-from app.resources.config import EMAIL, EMAIL_PASS, SITE_NAME
+from app.resources.config import EMAIL, EMAIL_PASS, SITE_NAME, VERIFY_ENDPOINT
 import yagmail
 
 router: APIRouter = APIRouter(prefix="/auth")
 response: ResponseHandler = ResponseHandler()
 
 @router.post("/signup/")
-def signup(username: str, email: str, password: str, confirm: str) -> JSONResponse:
+def signup(request: Request, username: str, email: str, password: str, confirm: str) -> JSONResponse:
      if len(password) < 10:
           return response.bad_request_response(data={ "message": "password should have a length greater equal to 10" })
 
@@ -27,12 +27,19 @@ def signup(username: str, email: str, password: str, confirm: str) -> JSONRespon
      if data != None:
           return response.bad_request_response(data={ "message": "this user already exists" })
 
-     verify_link = ""
+     endpoint = ""
+     if VERIFY_ENDPOINT != "null":
+          endpoint = VERIFY_ENDPOINT
+     else:
+          # if the verify endpoint is not gaven in the .env, we'll user the authenticator's verify endpoint
+          endpoint = request.url._url.replace("/auth/signup/", "").replace("//", "/") 
+
+     ucode = uuid.uuid4() 
+     verify_link =  f"{endpoint}/verify={ucode}" 
 
      if not send_verification(email, verify_link=verify_link):
           return response.crash_response(data={ "message": "Failed to send the verification email, please try again later" })
 
-     ucode = uuid.uuid4() 
      _15minutes = 900
      cache_id = f"user_verify_code:{ucode}*15m"
      data = {

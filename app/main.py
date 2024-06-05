@@ -24,7 +24,7 @@ def unexpected_error_handler(request: Request, exc) -> JSONResponse:
 
 @app.get("/")
 def root() -> JSONResponse:
-    return response.successful_response(data={ "message": "server is running... follow me on https://github.com/thullDev" })
+    return response.successful_response(data={ "message": f"server is running... follow me on https://github.com/thullDev" })
 
 app.include_router(auth_router.router)
 
