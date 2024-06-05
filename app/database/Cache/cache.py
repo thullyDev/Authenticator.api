@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from app.resources.config import REDIS_URL
 from redis import Redis
 import ast
@@ -17,14 +17,14 @@ class Cache:
         
 
     def get(self, name: str) -> Optional[str]: 
-        raw_data = redis.get(name)
+        rdata: Any = redis.get(name)
         
-        if not raw_data: return None
+        if not rdata: return None
         
-        return raw_data.decode()
+        return rdata.decode()
         
     def hget(self, name: str, *, is_list: bool =False) -> Union[Dict, List, None]:
-        rdata = redis.get(name)
+        rdata: Any = redis.get(name)
 
         if not rdata: return None
 
