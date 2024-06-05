@@ -7,45 +7,36 @@ import json
 redis = Redis().from_url(REDIS_URL)
 _24hour_expiry = 86400 
 
-class Cache:
-    _instance = None  
+def get(name: str) -> Optional[str]: 
+    rdata: Any = redis.get(name)
     
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super(Cache, cls).__new__(cls)
-        return cls._instance
-        
+    if not rdata: return None
+    
+    return rdata.decode()
+    
+def hget(name: str, *, is_list: bool =False) -> Union[Dict, List, None]:
+    rdata: Any = redis.get(name)
 
-    def get(self, name: str) -> Optional[str]: 
-        rdata: Any = redis.get(name)
-        
-        if not rdata: return None
-        
-        return rdata.decode()
-        
-    def hget(self, name: str, *, is_list: bool =False) -> Union[Dict, List, None]:
-        rdata: Any = redis.get(name)
+    if not rdata: return None
 
-        if not rdata: return None
+    rdata =  rdata.decode()
 
-        rdata =  rdata.decode()
+    if is_list:
+        return ast.literal_eval(rdata)
 
-        if is_list:
-            return ast.literal_eval(rdata)
+    return json.loads(rdata) 
 
-        return json.loads(rdata) 
+def set(name: str, value: str, expiry=_24hour_expiry) -> None: #!  WARNING: this is overwriting the python built in function set
+    if expiry: 
+        redis.set(name, value, expiry)
+        return 
 
-    def set(self, name: str, value: str, expiry=_24hour_expiry) -> None:
-        if expiry: 
-            redis.set(name, value, expiry)
-            return 
+    redis.set(name, value)
+    
+def hset(name: str, data, expiry=_24hour_expiry) -> None:
+    value = json.dumps(data)
+    set(name=name, value=value, expiry=expiry)
 
-        redis.set(name, value)
-        
-    def hset(self, name: str, data, expiry=_24hour_expiry) -> None:
-        value = json.dumps(data)
-        self.set(name=name, value=value, expiry=expiry)
-
-    def mset(self, data) -> None: redis.mset(data)
-        
-    def delete(self, name: str) -> None: redis.delete(name)
+def mset(data) -> None: redis.mset(data)
+    
+def delete(name: str) -> None: redis.delete(name)
