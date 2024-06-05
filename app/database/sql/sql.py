@@ -10,17 +10,10 @@ class Sql:
 			session.refresh(model)
 			return model
 
-
-	def sql_set_all(self, models) -> List:
+	def sql_set_all(self, models) -> None:
 		with Session(engine) as session:
-			db_models = []	
-			for model in models:
-				session.add(model)
-				session.commit()
-				session.refresh(model)
-				db_models.append(model)
-
-			return db_models
+			session.add_all(models)
+			session.commit()
 
 	def sql_get(self, model, **kwargs) -> Union[SQLModel, None]:
 		with Session(engine) as session:
