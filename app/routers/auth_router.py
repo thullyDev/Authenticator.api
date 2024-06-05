@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from app.handlers.response_handler import ResponseHandler
+from app.handlers import response_handler as response
 from app.database import database
 from app.database.cache import cache 
 import uuid
@@ -9,7 +9,6 @@ from app.resources.config import EMAIL, EMAIL_PASS, SITE_NAME, VERIFY_ENDPOINT
 import yagmail
 
 router: APIRouter = APIRouter(prefix="/auth")
-response: ResponseHandler = ResponseHandler()
 
 @router.post("/signup/")
 def signup(request: Request, username: str, email: str, password: str, confirm: str) -> JSONResponse:
