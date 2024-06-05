@@ -27,15 +27,9 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
      if data != None:
           return response.bad_request_response(data={ "message": "this user already exists" })
 
-     endpoint = ""
-     if VERIFY_ENDPOINT != "null":
-          endpoint = VERIFY_ENDPOINT
-     else:
-          # if the verify endpoint is not gaven in the .env, we'll user the authenticator's verify endpoint
-          endpoint = request.url._url.replace("/auth/signup/", "").replace("//", "/") 
 
      ucode = uuid.uuid4() 
-     verify_link =  f"{endpoint}/verify={ucode}" 
+     verify_link =  create_verification_link(code=ucode, request=request)
 
      if not send_verification(email, verify_link=verify_link):
           return response.crash_response(data={ "message": "Failed to send the verification email, please try again later" })
@@ -93,3 +87,15 @@ def send_verification(email: str, verify_link: str):
    subject = f"{SITE_NAME} verification"
 
    return send_email(subject=subject, body=body, to_email=email)
+
+def create_verification_link(*, request: Request, code: uuid.UUID):
+     endpoint = ""
+     if VERIFY_ENDPOINT != "null":
+          endpoint = VERIFY_ENDPOINT
+     else:
+          # if the verify endpoint is not gaven in the .env, we'll user the authenticator's verify endpoint
+          endpoint = request.url._url.replace("/auth/signup/", "").replace("//", "/") 
+
+     verify_link =  f"{endpoint}/verify={code}"
+
+     return verify_link
