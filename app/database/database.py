@@ -1,6 +1,8 @@
+from typing import Optional
+from sqlmodel import SQLModel
 from .sequel import User, sql
 
-def get_user(**kwargs):
+def get_user(**kwargs) -> Optional[SQLModel]:
 	user = sql.get(model=User, **kwargs)
 
 	return user
