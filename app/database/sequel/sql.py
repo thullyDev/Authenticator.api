@@ -23,8 +23,8 @@ def get(*, model, **kwargs) -> Union[SQLModel, None]:
 			return None
 		return instance
 
-def update(*, model, id, update_item) -> Union[SQLModel, None]:
-	return None
+# def update(*, model, id, update_item) -> Union[SQLModel, None]:
+# 	return None
 	# with Session(engine) as session:
 	# 	instance = session.get(model, id)
 
@@ -38,18 +38,17 @@ def update(*, model, id, update_item) -> Union[SQLModel, None]:
 
 	# 	return instance
 
-# @app.patch("/heroes/{hero_id}", response_model=HeroPublic)
-# def update_hero(hero_id: int, hero: HeroUpdate):
-#     with Session(engine) as session:
-#         db_hero = session.get(Hero, hero_id)
-#         if not db_hero:
-#             raise HTTPException(status_code=404, detail="Hero not found")
-#         hero_data = hero.model_dump(exclude_unset=True)
-#         db_hero.sqlmodel_update(hero_data)
-#         session.add(db_hero)
-#         session.commit()
-#         session.refresh(db_hero)
-#         return db_hero
+def update(id: int, model):
+    with Session(engine) as session:
+        user = session.get(model, id)
+        if not user:
+            return None
+        data = user.model_dump(exclude_unset=True)
+        user.sqlmodel_update(data)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user
         
 def delete(*, model, **kwargs) -> bool:
 	with Session(engine) as session:
