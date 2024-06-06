@@ -35,8 +35,7 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
      if not send_verification(email, verify_link=verify_link):
           return response.crash_response(data={ "message": "Failed to send the verification email, please try again later" })
 
-     # _15minutes = 900
-     _15minutes = 3000
+     _15minutes = 900
      cache_id = f"user_verify_code:{ucode}*15m"
      data = {
           "email": email,
@@ -63,21 +62,39 @@ def verify(_type: str, code: str):
      }
 
      db_response = database.set_user(**user)
-     print("db_response ===>", db_response)
 
-     # cache.delete(name=cache_id)
+     cache.delete(name=cache_id)
      
      return response.successful_response(data={ "message": "successfully signed up", "data": data })
 
+@router.post("/login/")
+def login(email: str, password: str) -> JSONResponse:
+     user: Any = database.get_user(email=email)
 
-def validator(*, request: Request, callnext) -> JSONResponse:
-     url_path = request.url.path
-     temp = url_path.split("/")
+     print(user)
 
-     if "signup" in temp:
-          return callnext(request) 
+     if not user:
+          return response.bad_request_response(data={ "message": "this email is not registered" })
+     
+     token = generate_unique_token()
+     database.update_user(email=user.email, token=token)
 
-     return response.successful_response(data={ "message": "this is validator" })
+     data = {
+          "email": user.email,
+          "username": user.username,
+          "token": token,
+          "profile_image_url": user.profile_image_url,
+     }
+     return response.successful_response(data={ "message": "successfully logged in", "data": data })
+
+# def validator(*, request: Request, callnext) -> JSONResponse:
+#      url_path = request.url.path
+#      temp = url_path.split("/")
+
+#      if "signup" in temp:
+#           return callnext(request) 
+
+#      return response.successful_response(data={ "message": "this is validator" })
 
 def send_email(*, subject: str, body: str, to_email: str) -> bool:
      yag = yagmail.SMTP(user=EMAIL, password=EMAIL_PASS)

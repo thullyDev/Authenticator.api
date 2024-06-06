@@ -6,19 +6,19 @@ from app.handlers import response_handler as response
 
 app = FastAPI()
 
-def auth_middleware(request: Request, callnext):
-    url_path = request.url.path
-    temp = url_path.split("/")
+# def auth_middleware(request: Request, callnext):
+#     url_path = request.url.path
+#     temp = url_path.split("/")
 
-    if "auth" in temp:
-        return auth_router.validator(request=request, callnext=callnext) 
+#     if "auth" in temp:
+#         return auth_router.validator(request=request, callnext=callnext) 
 
-    return callnext(request)
+#     return callnext(request)
 
-app.middleware("http")(auth_middleware)
+# app.middleware("http")(auth_middleware)
 
 @app.exception_handler(Exception)
-def unexpected_error_handler(request: Request, exc) -> JSONResponse:
+def unexpected_error_handler() -> JSONResponse:
     return response.crash_response(data={ "message": "Unexpected error occurred" })
 
 @app.get("/")
