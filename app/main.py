@@ -2,10 +2,9 @@ from fastapi import FastAPI, Request
 from typing import Any, Dict
 from .routers import auth_router 
 from fastapi.responses import JSONResponse
-from app.handlers.response_handler import ResponseHandler
+from app.handlers import response_handler as response
 
 app = FastAPI()
-response: ResponseHandler = ResponseHandler()
 
 def auth_middleware(request: Request, callnext):
     url_path = request.url.path
