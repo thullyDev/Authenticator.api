@@ -1,6 +1,7 @@
 from typing import Any, Optional, Dict
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from app.database.models import SetUser
 from app.handlers import response_handler as response
 from app.database import database
 from app.database.cache import cache 
@@ -23,9 +24,9 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
      if not isEmailValidate(email): 
           return response.bad_request_response(data={ "message": "email is invalid" })
 
-     data = database.get_user(email=email)
+     user = database.get_user(key="email", entity=email)
 
-     if data != None:
+     if user != None:
           return response.bad_request_response(data={ "message": "this user already exists" })
 
 
@@ -56,12 +57,8 @@ def verify(_type: str, code: str):
           return response.bad_request_response(data={ "message": "invalid code" })
 
      token = generate_unique_token()
-     user = {
-          "token": token,
-          **data,
-     }
-
-     db_response = database.set_user(**user)
+     user = (data["username"], data["email"], data["password"])
+     db_response = database.set_user(SetUser(user=user))
 
      cache.delete(name=cache_id)
      
@@ -69,15 +66,13 @@ def verify(_type: str, code: str):
 
 @router.post("/login/")
 def login(email: str, password: str) -> JSONResponse:
-     user: Any = database.get_user(email=email)
-
-     print(user)
+     user = database.get_user(key="email", entity=email)
 
      if not user:
           return response.bad_request_response(data={ "message": "this email is not registered" })
      
      token = generate_unique_token()
-     database.update_user(email=user.email, token=token)
+     database.update_user(key="email", entity=email)
 
      data = {
           "email": user.email,

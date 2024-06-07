@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request
-from typing import Any, Dict
 from .routers import auth_router 
 from fastapi.responses import JSONResponse
 from app.handlers import response_handler as response
