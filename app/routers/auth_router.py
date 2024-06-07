@@ -91,15 +91,6 @@ def login(email: str, password: str) -> JSONResponse:
      }
      return response.successful_response(data={ "message": "successfully logged in", "data": data })
 
-# def validator(*, request: Request, callnext) -> JSONResponse:
-#      url_path = request.url.path
-#      temp = url_path.split("/")
-
-#      if "signup" in temp:
-#           return callnext(request) 
-
-#      return response.successful_response(data={ "message": "this is validator" })
-
 def send_email(*, subject: str, body: str, to_email: str) -> bool:
      yag = yagmail.SMTP(user=EMAIL, password=EMAIL_PASS)
      response = yag.send(
