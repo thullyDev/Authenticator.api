@@ -105,7 +105,7 @@ def forgot_password(email: str) -> JSONResponse:
      if not res:
           return response.crash_response(data={ "message": f"Failed to send a email to {email}, please try again later" })
 
-     return response.successful_response(data={ "message": "send an email to your email account, you'll be able use again to forgotpassword again after 60 minutes", "data": data })
+     return response.successful_response(data={ "message": "send an email to your email account, you'll be able use again to forgot password again after 60 minutes" })
 
 def send_email(*, subject: str, body: str, to_email: str) -> bool:
      yag = yagmail.SMTP(user=EMAIL, password=EMAIL_PASS)
@@ -129,9 +129,6 @@ def isEmailValidate(email: str) -> bool:
           return False
 
 def send_verification(email: str, verify_link: str) -> bool:
-     print(verify_link)
-     return True
-
      body = f"Verification for {SITE_NAME} please follow the link {verify_link} to verify"
      subject = f"{SITE_NAME} verification"
      return send_email(subject=subject, body=body, to_email=email)
