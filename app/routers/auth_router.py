@@ -36,7 +36,7 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
      if not send_verification(email, verify_link=verify_link):
           return response.crash_response(data={ "message": "Failed to send the verification email, please try again later" })
 
-     _15minutes = 900
+     _15minutes = 15 * 60
      cache_id = f"user_verify_code:{ucode}*15m"
      data = {
           "email": email,
@@ -61,7 +61,7 @@ def verify(_type: str, code: str):
      res = database.set_user(SetUser(user=user))
 
      if res == False:
-          return response.bad_request_response(data={ "message": "failed to create user" })
+          return response.bad_request_response(data={ "message": "failed to create user, please try again later" })
 
      cache.delete(name=cache_id)
      
@@ -90,6 +90,22 @@ def login(email: str, password: str) -> JSONResponse:
           "profile_image_url": user.profile_image_url,
      }
      return response.successful_response(data={ "message": "successfully logged in", "data": data })
+
+@router.post("/forgot_password/") # , dependencies=[Depends(request_ratelimter)])
+def forgot_password(email: str) -> JSONResponse:
+     user = database.get_user(key="email", entity=email)
+
+     if not user:
+          return response.bad_request_response(data={ "message": "this email is not registered" })
+
+     body = f"Your password for {SITE_NAME} is {user.password}"
+     subject = f"{SITE_NAME} verification"
+     res = send_email(subject=subject, body=body, to_email=email)
+
+     if not res:
+          return response.crash_response(data={ "message": f"Failed to send a email to {email}, please try again later" })
+
+     return response.successful_response(data={ "message": "send an email to your email account, you'll be able use again to forgotpassword again after 60 minutes", "data": data })
 
 def send_email(*, subject: str, body: str, to_email: str) -> bool:
      yag = yagmail.SMTP(user=EMAIL, password=EMAIL_PASS)
@@ -142,3 +158,24 @@ def generate_unique_token(length: int = 250) -> str:
     hashed_token = hashed_token[:length]
 
     return hashed_token
+
+def create_finger_print(request: Request) -> str:
+    headers = str(request.headers)
+    client_ip = request.client.host
+    user_agent = request.headers.get("user-agent")
+    metadata_str = f"{headers}{client_ip}{user_agent}"
+
+    return sha256(metadata_str.encode()).hexdigest()
+
+# def request_ratelimter(request: Request):
+#      finger_print = create_finger_print(request)
+#      cache_id = f"request_finger_print:{code}*60m"
+#      res = cache.set(name=cache_id, expiry=_60minutes, value=finger_print)
+
+#     if finger_print == res:
+#         return response.forbidden_response(data={ "message": "this request is ratelimited, so please try agian later" })
+
+#      _60minutes = 60 * 60
+#      cache.set(name=cache_id, expiry=_60minutes, value=finger_print)
+
+#     return 
