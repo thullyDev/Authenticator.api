@@ -31,7 +31,7 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
 
 
      ucode = str(uuid.uuid4() )
-     verify_link = create_verification_link(code=ucode, request=request, _type="signup")
+     verify_link = create_verification_link(code=ucode, request=request)
 
      if not send_verification(email, verify_link=verify_link):
           return response.crash_response(data={ "message": "Failed to send the verification email, please try again later" })
@@ -48,15 +48,15 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
 
      return response.successful_response(data={ "message": "verify now", "data": data })
 
-@router.get("/verify/{_type}/{code}")
-def verify(_type: str, code: str):
+@router.get("/verify/{code}")
+def verify(code: str):
      cache_id = f"user_verify_code:{code}*15m"
      data: Any = cache.hget(name=cache_id)
 
      if data == None:
           return response.bad_request_response(data={ "message": "invalid code" })
 
-     token = generate_unique_token()
+     data["token"] = generate_unique_token()
      user = (data["username"], data["email"], data["password"])
      res = database.set_user(SetUser(user=user))
 
@@ -133,15 +133,15 @@ def send_verification(email: str, verify_link: str) -> bool:
      subject = f"{SITE_NAME} verification"
      return send_email(subject=subject, body=body, to_email=email)
 
-def create_verification_link(*, request: Any, code: str, _type: str):
+def create_verification_link(*, request: Any, code: str):
      endpoint = VERIFY_ENDPOINT
 
      if VERIFY_ENDPOINT == "null":
-          # if the verify endpoint is not gaven in the .env, we'll user the authenticator's verify endpoint
+          # if the verify endpoint is not given in the .env, we'll user the authenticator's verify endpoint
           url = request.url._url
           endpoint = url.replace("//", "**").split("/")[0].replace("**", "//") # extracting the host for the server
 
-     verify_link =  f"{endpoint}/auth/verify/{_type}/{code}"
+     verify_link =  f"{endpoint}/auth/verify/{code}"
 
      return verify_link
 
@@ -156,13 +156,13 @@ def generate_unique_token(length: int = 250) -> str:
 
     return hashed_token
 
-def create_finger_print(request: Request) -> str:
-    headers = str(request.headers)
-    client_ip = request.client.host
-    user_agent = request.headers.get("user-agent")
-    metadata_str = f"{headers}{client_ip}{user_agent}"
+# def create_finger_print(request: Any) -> str:
+#     headers = str(request.headers)
+#     client_ip = request.client.host
+#     user_agent = request.headers.get("user-agent")
+#     metadata_str = f"{headers}{client_ip}{user_agent}"
 
-    return sha256(metadata_str.encode()).hexdigest()
+#     return sha256(metadata_str.encode()).hexdigest()
 
 # def request_ratelimter(request: Request):
 #      finger_print = create_finger_print(request)
