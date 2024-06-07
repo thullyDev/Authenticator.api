@@ -36,8 +36,3 @@ def update_user(*, key: str, entity: str, column: str, value: str) -> bool:
 	res = psqlDB.execute(query)
 
 	return res 
-
-
-# UPDATE employees
-# SET salary = 50000
-# WHERE name = 'John';
