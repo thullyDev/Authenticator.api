@@ -1,17 +1,14 @@
-from typing import Optional
-from sqlmodel import SQLModel
-from .sequel import User, sql
+from typing import Dict
+from app.resources.config import SQL_URL
+from .sequel.postgresDatabase import PostgresDB 
 
-def get_user(**kwargs) -> Optional[SQLModel]:
-	user = sql.get(model=User, **kwargs)
+sqlDB: PostgresDB = PostgresDB(SQL_URL)  
 
-	return user
+def get_user() -> Dict[str, str]:
+	return {}
 
-def set_user(**kwargs) -> Optional[SQLModel]:
-	user = User(**kwargs)
+def set_user() -> None:
+	pass
 
-	return sql.set(model=user)
-
-def update_user(**kwargs) -> Optional[SQLModel]:
-	user = User(**kwargs)
-	return sql.update(model=user, **kwargs)
+def update_user() -> None:
+	pass

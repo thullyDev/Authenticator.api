@@ -5,6 +5,7 @@ config.read_env()
 
 PORT: str = config("PORT")
 HOST: str = config("HOST")
+SQL_URL: str = config("SQL_URL")
 REDIS_URL: str = config("REDIS_URL")
 EMAIL: str = config("EMAIL")
 EMAIL_PASS: str = config("EMAIL_PASS")
