@@ -58,8 +58,7 @@ def verify(_type: str, code: str):
 
      token = generate_unique_token()
      user = (data["username"], data["email"], data["password"])
-     db_response = database.set_user(SetUser(user=user))
-
+     database.set_user(SetUser(user=user))
      cache.delete(name=cache_id)
      
      return response.successful_response(data={ "message": "successfully signed up", "data": data })

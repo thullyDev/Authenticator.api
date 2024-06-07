@@ -45,7 +45,8 @@ class User(BaseUser):
 		self.email: str = user[2]
 		self.password: str = user[3]
 		self.deleted: bool = user[4]
-		self.token: str = user[7]
+		self.profile_image_url: Optional[str] = user[6]
+		self.token: Optional[str] = user[7]
 
 class SetUser(BaseUser):
 	def __init__(self, user: Tuple[str, ...]):
