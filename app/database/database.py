@@ -26,6 +26,18 @@ def set_user(user: SetUser) -> bool:
 
 	return res 
 
-def update_user(*, key: str, entity: str) -> None:
-	pass
+def update_user(*, key: str, entity: str, column: str, value: str) -> bool:
+	query = f"""
+				update "user" 
+				set {column} = {repr(value)} 
+				where {key} = '{entity}';
+			""".strip()
 
+	res = psqlDB.execute(query)
+
+	return res 
+
+
+# UPDATE employees
+# SET salary = 50000
+# WHERE name = 'John';

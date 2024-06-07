@@ -58,7 +58,11 @@ def verify(_type: str, code: str):
 
      token = generate_unique_token()
      user = (data["username"], data["email"], data["password"])
-     database.set_user(SetUser(user=user))
+     res = database.set_user(SetUser(user=user))
+
+     if res == False:
+          return response.bad_request_response(data={ "message": "failed to create user" })
+
      cache.delete(name=cache_id)
      
      return response.successful_response(data={ "message": "successfully signed up", "data": data })
@@ -69,9 +73,15 @@ def login(email: str, password: str) -> JSONResponse:
 
      if not user:
           return response.bad_request_response(data={ "message": "this email is not registered" })
+
+     if password != user.password:  
+          return response.bad_request_response(data={ "message": "the is invalid password" })
      
      token = generate_unique_token()
-     database.update_user(key="email", entity=email)
+     res = database.update_user(key="email", entity=email, column="token", value=token)
+
+     if res == False:
+          return response.bad_request_response(data={ "message": "failed to update user" })
 
      data = {
           "email": user.email,
@@ -131,7 +141,7 @@ def create_verification_link(*, request: Any, code: str, _type: str):
 
      return verify_link
 
-def generate_unique_token(length: int = 250):
+def generate_unique_token(length: int = 250) -> str:
     random_uuid = uuid.uuid4()
     uuid_bytes = random_uuid.bytes
     hashed_token = hashlib.sha256(uuid_bytes).hexdigest()
