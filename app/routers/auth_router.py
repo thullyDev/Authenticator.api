@@ -1,11 +1,12 @@
 from typing import Any, Optional, Dict
 from fastapi import APIRouter, Request
+from fastapi.datastructures import URL
 from fastapi.responses import JSONResponse
 from app.database.models import SetUser
 from app.handlers import response_handler as response
 from app.database import database
 from app.database.cache import cache 
-from app.resources.config import EMAIL, EMAIL_PASS, SITE_NAME, VERIFY_ENDPOINT
+from app.resources.config import EMAIL, EMAIL_PASS, RENEW_PASSWORD_LINK, SITE_NAME
 import uuid
 import re
 import hashlib
@@ -30,10 +31,12 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
           return response.bad_request_response(data={ "message": "this user already exists" })
 
 
-     ucode = str(uuid.uuid4() )
+     ucode = str(uuid.uuid4())
      verify_link = create_verification_link(code=ucode, request=request)
+     body = f"Verification for {SITE_NAME} please follow the link {verify_link} to verify"
+     subject = f"{SITE_NAME} verification"
 
-     if not send_verification(email, verify_link=verify_link):
+     if not send_email(subject=subject, body=body, to_email=email):
           return response.crash_response(data={ "message": "Failed to send the verification email, please try again later" })
 
      _15minutes = 15 * 60
@@ -78,7 +81,7 @@ def login(email: str, password: str) -> JSONResponse:
           return response.bad_request_response(data={ "message": "the is invalid password" })
      
      token = generate_unique_token()
-     res = database.update_user(key="email", entity=email, column="token", value=token)
+     res = database.update_user(key="email", entity=email, data=[("token", token)])
 
      if res == False:
           return response.bad_request_response(data={ "message": "failed to update user" })
@@ -95,17 +98,53 @@ def login(email: str, password: str) -> JSONResponse:
 def forgot_password(email: str) -> JSONResponse:
      user = database.get_user(key="email", entity=email)
 
+     if not isEmailValidate(email): 
+          return response.bad_request_response(data={ "message": "email is invalid" })
+
      if not user:
           return response.bad_request_response(data={ "message": "this email is not registered" })
 
-     body = f"Your password for {SITE_NAME} is {user.password}"
-     subject = f"{SITE_NAME} verification"
-     res = send_email(subject=subject, body=body, to_email=email)
+     code = str(uuid.uuid4())
+     renew_url = URL(RENEW_PASSWORD_LINK).replace_query_params(code=code)
 
-     if not res:
+
+     body = f"follow this link {renew_url} to renew your password"
+     subject = f"{SITE_NAME} renew password"
+
+     if not send_email(subject=subject, body=body, to_email=email):
           return response.crash_response(data={ "message": f"Failed to send a email to {email}, please try again later" })
 
-     return response.successful_response(data={ "message": "send an email to your email account, you'll be able use again to forgot password again after 60 minutes" })
+     _15minutes = 15 * 60
+     cache_id = f"user_renew_password_code:{code}*15m"
+     data = {
+          "email": email,
+     }
+
+     cache.hset(name=cache_id, expiry=_15minutes, data=data)
+
+     return response.successful_response(data={ "message": "sent an email to your email account, you'll be able use again to forgot password again after 60 minutes" })
+
+@router.post("/renew_password/")
+def renew_password(code: str, password: str, confirm: str):
+     cache_id = f"user_renew_password_code:{code}*15m"
+     data: Any = cache.hget(name=cache_id)
+
+     if data == None:
+          return response.bad_request_response(data={ "message": "invalid code" })
+
+     if len(password) < 10:
+          return response.bad_request_response(data={ "message": "password should have a length greater equal to 10" })
+
+     if password != confirm:
+          return response.bad_request_response(data={ "message": "password and confirm do not match" })
+
+     email = data["email"]
+     res = database.update_user(key="email", entity=email, data=[('password', password)])
+
+     if res == False:
+          return response.bad_request_response(data={ "message": "failed to update user" })
+
+     return response.successful_response(data={ "message": "successfully renewed your password" })
 
 def send_email(*, subject: str, body: str, to_email: str) -> bool:
      yag = yagmail.SMTP(user=EMAIL, password=EMAIL_PASS)
@@ -128,19 +167,9 @@ def isEmailValidate(email: str) -> bool:
      else:
           return False
 
-def send_verification(email: str, verify_link: str) -> bool:
-     body = f"Verification for {SITE_NAME} please follow the link {verify_link} to verify"
-     subject = f"{SITE_NAME} verification"
-     return send_email(subject=subject, body=body, to_email=email)
-
 def create_verification_link(*, request: Any, code: str):
-     endpoint = VERIFY_ENDPOINT
-
-     if VERIFY_ENDPOINT == "null":
-          # if the verify endpoint is not given in the .env, we'll user the authenticator's verify endpoint
-          url = request.url._url
-          endpoint = url.replace("//", "**").split("/")[0].replace("**", "//") # extracting the host for the server
-
+     url = request.url._url
+     endpoint = url.replace("//", "**").split("/")[0].replace("**", "//") # extracting the host for the server
      verify_link =  f"{endpoint}/auth/verify/{code}"
 
      return verify_link
@@ -176,3 +205,10 @@ def generate_unique_token(length: int = 250) -> str:
 #      cache.set(name=cache_id, expiry=_60minutes, value=finger_print)
 
 #     return 
+
+
+def validator(*, request: Request, callnext) -> JSONResponse:
+     url_path = request.url.path
+     temp = url_path.split("/")
+
+     return callnext(request) 
