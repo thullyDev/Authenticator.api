@@ -2,8 +2,18 @@ from fastapi import FastAPI, Request
 from .routers import auth_router 
 from fastapi.responses import JSONResponse
 from app.handlers import response_handler as response
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def auth_middleware(request: Request, callnext):
     url_path = request.url.path
