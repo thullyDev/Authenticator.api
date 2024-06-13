@@ -168,11 +168,7 @@ def isEmailValidate(email: str) -> bool:
           return False
 
 def create_verification_link(*, request: Any, code: str):
-     url = request.url._url
-     endpoint = url.replace("//", "**").split("/")[0].replace("**", "//") # extracting the host for the server
-     verify_link =  f"{endpoint}/auth/verify/{code}"
-
-     return verify_link
+     return f"{redirect_link}/auth/verify/{code}"
 
 def generate_unique_token(length: int = 250) -> str:
     random_uuid = uuid.uuid4()
