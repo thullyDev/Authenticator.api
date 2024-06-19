@@ -13,37 +13,41 @@ from ..resources import (
     BAD_REQUEST_MSG,
     BAD_REQUEST,
 )
-json
-class ResponseHandler:
-    def json_response(self, status_code: int, data: Dict[str, Any]) -> JSONResponse:
-        return JSONResponse(content=data, status_code=status_code) 
 
-    def http_response(self, text: str, status_code: int) -> Response:
-        return Response(content=text, status_code=status_code)
 
-    def data_processor(self, data: Dict[str, Any], status_code: int, message: str) -> Dict[str, Any]:
-        data = data if data else {}
-        data["status_code"] = status_code
-        if not data.get("message"): 
-            data["message"] = message
-        return data
+def json_response(status_code: int, data: Dict[str, Any]) -> JSONResponse:
+    return JSONResponse(content=data) 
 
-    def forbidden_response(self, data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
-        data = self.data_processor(data=data, status_code=FORBIDDEN, message=FORBIDDEN_MSG)
-        return self.json_response(data=data, status_code=FORBIDDEN, **kwargs)
+def http_response(text: str, status_code: int) -> Response:
+    return Response(content=text, status_code=status_code)
 
-    def successful_response(self, data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
-        data = self.data_processor(data=data, status_code=SUCCESSFUL, message=SUCCESSFUL_MSG)
-        return self.json_response(data=data, status_code=SUCCESSFUL, **kwargs)
+def data_processor(data: Dict[str, Any], status_code: int, message: str) -> Dict[str, Any]:
+    data = data if data else {}
+    data["status_code"] = status_code
+    if not data.get("message"): 
+        data["message"] = message
 
-    def not_found_response(self, data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
-        data = self.data_processor(data=data, status_code=NOT_FOUND, message=NOT_FOUND_MSG)
-        return self.json_response(data=data, status_code=NOT_FOUND, **kwargs)
+    if not data.get("data"): 
+        data["data"] = {}
+        
+    return data
 
-    def crash_response(self, data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
-        data = self.data_processor(data=data, status_code=CRASH, message=CRASH_MSG)
-        return self.json_response(data=data, status_code=CRASH, **kwargs)
+def forbidden_response(data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
+    data = data_processor(data=data, status_code=FORBIDDEN, message=FORBIDDEN_MSG)
+    return json_response(data=data, status_code=FORBIDDEN, **kwargs)
 
-    def bad_request_response(self, data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
-        data = self.data_processor(data=data, status_code=BAD_REQUEST, message=BAD_REQUEST_MSG)
-        return self.json_response(data=data, status_code=BAD_REQUEST, **kwargs)
+def successful_response(data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
+    data = data_processor(data=data, status_code=SUCCESSFUL, message=SUCCESSFUL_MSG)
+    return json_response(data=data, status_code=SUCCESSFUL, **kwargs)
+
+def not_found_response(data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
+    data = data_processor(data=data, status_code=NOT_FOUND, message=NOT_FOUND_MSG)
+    return json_response(data=data, status_code=NOT_FOUND, **kwargs)
+
+def crash_response(data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
+    data = data_processor(data=data, status_code=CRASH, message=CRASH_MSG)
+    return json_response(data=data, status_code=CRASH, **kwargs)
+
+def bad_request_response(data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
+    data = data_processor(data=data, status_code=BAD_REQUEST, message=BAD_REQUEST_MSG)
+    return json_response(data=data, status_code=BAD_REQUEST, **kwargs)

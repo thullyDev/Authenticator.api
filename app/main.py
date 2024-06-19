@@ -1,11 +1,19 @@
 from fastapi import FastAPI, Request
-from typing import Any, Dict
 from .routers import auth_router 
 from fastapi.responses import JSONResponse
-from app.handlers.response_handler import ResponseHandler
+from app.handlers import response_handler as response
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
-response: ResponseHandler = ResponseHandler()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def auth_middleware(request: Request, callnext):
     url_path = request.url.path
@@ -19,12 +27,12 @@ def auth_middleware(request: Request, callnext):
 app.middleware("http")(auth_middleware)
 
 @app.exception_handler(Exception)
-def unexpected_error_handler(request: Request, exc) -> JSONResponse:
+def unexpected_error_handler() -> JSONResponse:
     return response.crash_response(data={ "message": "Unexpected error occurred" })
 
 @app.get("/")
 def root() -> JSONResponse:
-    return response.successful_response(data={ "message": "server is running... follow me on https://github.com/thullDev" })
+    return response.successful_response(data={ "message": f"server is running... follow me on https://github.com/thullDev" })
 
 app.include_router(auth_router.router)
 
