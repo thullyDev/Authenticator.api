@@ -26,6 +26,10 @@ def data_processor(data: Dict[str, Any], status_code: int, message: str) -> Dict
     data["status_code"] = status_code
     if not data.get("message"): 
         data["message"] = message
+
+    if not data.get("data"): 
+        data["data"] = {}
+        
     return data
 
 def forbidden_response(data: Dict[str, Any] = {}, **kwargs) -> JSONResponse:
