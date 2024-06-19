@@ -49,7 +49,7 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
 
      cache.hset(name=cache_id, expiry=_15minutes, data=data)
 
-     return response.successful_response(data={ "message": "verify now", "data": data })
+     return response.successful_response(data={ "message": "sent verify link to your email, please verify" })
 
 @router.get("/verify/{code}")
 def verify(code: str):

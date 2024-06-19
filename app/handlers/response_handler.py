@@ -16,7 +16,7 @@ from ..resources import (
 
 
 def json_response(status_code: int, data: Dict[str, Any]) -> JSONResponse:
-    return JSONResponse(content=data, status_code=status_code) 
+    return JSONResponse(content=data) 
 
 def http_response(text: str, status_code: int) -> Response:
     return Response(content=text, status_code=status_code)
