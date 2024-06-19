@@ -123,7 +123,7 @@ def forgot_password(email: str) -> JSONResponse:
 
      cache.hset(name=cache_id, expiry=_15minutes, data=data)
 
-     return response.successful_response(data={ "message": "sent an email to your email account, you'll be able use again to forgot password again after 60 minutes" })
+     return response.successful_response(data={ "message": "sent a message to your email" })
 
 @router.post("/renew_password/")
 def renew_password(code: str, password: str, confirm: str):
