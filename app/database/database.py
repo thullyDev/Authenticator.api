@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional
 from app.database.models import SetUser, User
 from app.resources.config import SQL_URL
 from .sequel.postgresDatabase import PostgresDB 
+import pprint
 
 psqlDB: PostgresDB = PostgresDB(SQL_URL)  
 
@@ -9,7 +10,7 @@ def get_user(*, key: str, entity: str) -> Optional[User]:
 	query = f"select * from \"user\" where {key} = '{entity}';"
 	response = psqlDB.fetch(query=query)
 
-	if response == None:
+	if not response:
 		return None
 
 	return User(response[0])

@@ -6,7 +6,7 @@ from app.database.models import SetUser
 from app.handlers import response_handler as response
 from app.database import database
 from app.database.cache import cache 
-from app.resources.config import EMAIL, EMAIL_PASS, RENEW_PASSWORD_LINK, SITE_NAME
+from app.resources.config import EMAIL, EMAIL_PASS, RENEW_PASSWORD_LINK, SITE_NAME, REDIRECT_LINK
 import uuid
 import re
 import hashlib
@@ -51,7 +51,7 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
 
      return response.successful_response(data={ "message": "sent verify link to your email, please verify" })
 
-@router.get("/verify/{code}")
+@router.post("/verify/")
 def verify(code: str):
      cache_id = f"user_verify_code:{code}*15m"
      data: Any = cache.hget(name=cache_id)
@@ -168,7 +168,7 @@ def isEmailValidate(email: str) -> bool:
           return False
 
 def create_verification_link(*, request: Any, code: str):
-     return f"{redirect_link}/auth/verify/{code}"
+     return f"{REDIRECT_LINK}?code={code}"
 
 def generate_unique_token(length: int = 250) -> str:
     random_uuid = uuid.uuid4()
