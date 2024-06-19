@@ -45,6 +45,7 @@ def signup(request: Request, username: str, email: str, password: str, confirm: 
           "email": email,
           "password": password,
           "username": username,
+          "profile_image_url": None,
      }
 
      cache.hset(name=cache_id, expiry=_15minutes, data=data)
@@ -61,12 +62,12 @@ def verify(code: str):
 
      data["token"] = generate_unique_token()
      user = (data["username"], data["email"], data["password"])
-     # res = database.set_user(SetUser(user=user))
+     res = database.set_user(SetUser(user=user))
 
-     # if res == False:
-     #      return response.bad_request_response(data={ "message": "failed to create user, please try again later" })
+     if res == False:
+          return response.bad_request_response(data={ "message": "failed to create user, please try again later" })
 
-     # cache.delete(name=cache_id)
+     cache.delete(name=cache_id)
      
      return response.successful_response(data={ "message": "successfully signed up", "data": data })
 
